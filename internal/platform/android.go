@@ -205,9 +205,23 @@ func (p *AndroidPlatform) addFirebaseImportsToMainActivity() error {
 
 	if strings.Contains(mainActivityPath, ".java") {
 		if !strings.Contains(contentStr, "FirebaseApp.initializeApp") {
-			contentStr = strings.Replace(contentStr,
-				"import",
-				"import com.google.firebase.FirebaseApp;\nimport", 1)
+			// Add Firebase import after existing imports (safer approach)
+			if !strings.Contains(contentStr, "import com.google.firebase.FirebaseApp;") {
+				if strings.Contains(contentStr, "import android.os.Bundle;") {
+					contentStr = strings.Replace(contentStr,
+						"import android.os.Bundle;",
+						"import android.os.Bundle;\nimport com.google.firebase.FirebaseApp;", 1)
+				} else if strings.Contains(contentStr, "import androidx.appcompat.app.AppCompatActivity;") {
+					contentStr = strings.Replace(contentStr,
+						"import androidx.appcompat.app.AppCompatActivity;",
+						"import androidx.appcompat.app.AppCompatActivity;\nimport com.google.firebase.FirebaseApp;", 1)
+				} else {
+					// Fallback: add after package declaration
+					contentStr = strings.Replace(contentStr,
+						"package",
+						"import com.google.firebase.FirebaseApp;\n\npackage", 1)
+				}
+			}
 
 			if strings.Contains(contentStr, "onCreate") {
 				contentStr = strings.Replace(contentStr,
@@ -217,9 +231,23 @@ func (p *AndroidPlatform) addFirebaseImportsToMainActivity() error {
 		}
 	} else if strings.Contains(mainActivityPath, ".kt") {
 		if !strings.Contains(contentStr, "FirebaseApp.initializeApp") {
-			contentStr = strings.Replace(contentStr,
-				"import",
-				"import com.google.firebase.FirebaseApp\nimport", 1)
+			// Add Firebase import after existing imports
+			if !strings.Contains(contentStr, "import com.google.firebase.FirebaseApp") {
+				if strings.Contains(contentStr, "import android.os.Bundle") {
+					contentStr = strings.Replace(contentStr,
+						"import android.os.Bundle",
+						"import android.os.Bundle\nimport com.google.firebase.FirebaseApp", 1)
+				} else if strings.Contains(contentStr, "import androidx.appcompat.app.AppCompatActivity") {
+					contentStr = strings.Replace(contentStr,
+						"import androidx.appcompat.app.AppCompatActivity",
+						"import androidx.appcompat.app.AppCompatActivity\nimport com.google.firebase.FirebaseApp", 1)
+				} else {
+					// Fallback: add after package declaration
+					contentStr = strings.Replace(contentStr,
+						"package",
+						"import com.google.firebase.FirebaseApp\n\npackage", 1)
+				}
+			}
 
 			if strings.Contains(contentStr, "onCreate") {
 				contentStr = strings.Replace(contentStr,
