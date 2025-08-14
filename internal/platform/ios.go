@@ -6,6 +6,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/clix-so/nativefire/internal/firebase"
 	"github.com/clix-so/nativefire/internal/ui"
@@ -957,50 +958,66 @@ func (p *IOSPlatform) shouldUseSPM() bool {
 }
 
 func (p *IOSPlatform) updateSwiftPackages() error {
-	return ui.ShowLoader("Resolving Swift Package dependencies", func() error {
-		if err := p.runCommand("swift", []string{"package", "resolve"}, "Resolving Swift Package dependencies"); err != nil {
-			ui.WarningMsg("Failed to resolve Swift packages. Please update them manually in Xcode")
-			ui.InfoMsg("In Xcode: File > Package Dependencies > Reset Package Caches")
-			return err
-		}
-
-		ui.SuccessMsg("Swift Package dependencies resolved successfully!")
-		return nil
-	})
+	ui.InfoMsg("📦 Swift Package Manager detected")
+	ui.InfoMsg("")
+	ui.InfoMsg("Please ensure Firebase iOS SDK is properly added to your project:")
+	ui.InfoMsg("")
+	
+	if fileExists("Package.swift") {
+		ui.InfoMsg("For Package.swift projects:")
+		ui.InfoMsg("  1. Add Firebase dependency to Package.swift")
+		ui.InfoMsg("  2. Run: swift package resolve")
+		ui.InfoMsg("  3. Add FirebaseCore to your target dependencies")
+	} else {
+		ui.InfoMsg("For Xcode projects:")
+		ui.InfoMsg("  1. Open your project in Xcode")
+		ui.InfoMsg("  2. File → Add Package Dependencies...")
+		ui.InfoMsg("  3. Add: https://github.com/firebase/firebase-ios-sdk")
+		ui.InfoMsg("  4. Select FirebaseCore product")
+		ui.InfoMsg("  5. Build your project to resolve dependencies")
+	}
+	
+	ui.InfoMsg("")
+	ui.SuccessMsg("Swift Package Manager setup guidance provided")
+	return nil
 }
 
 func (p *IOSPlatform) setupSPMFirebase() error {
-	ui.InfoMsg("🔥 Firebase iOS SDK Setup Required")
-	ui.InfoMsg("")
-	ui.InfoMsg("Please add Firebase iOS SDK to your Xcode project using Swift Package Manager:")
-	ui.InfoMsg("")
+	ui.AnimatedHeader("Firebase iOS SDK Setup Required")
+	fmt.Println()
+	
+	ui.Typewriter("Please add Firebase iOS SDK to your Xcode project using Swift Package Manager:", 30*time.Millisecond)
+	fmt.Println()
+	
 	ui.InfoMsg("📋 Steps to follow:")
-	ui.InfoMsg("  1. Open your Xcode project")
-	ui.InfoMsg("  2. Go to File → Add Package Dependencies...")
-	ui.InfoMsg("  3. Enter this URL: https://github.com/firebase/firebase-ios-sdk")
-	ui.InfoMsg("  4. Select version 10.24.0 or later")
-	ui.InfoMsg("  5. Add 'FirebaseCore' to your app target")
-	ui.InfoMsg("  6. Build your project to ensure dependencies are resolved")
-	ui.InfoMsg("")
-
-	// Ask user to confirm before proceeding
-	ui.InfoMsg("🤔 Have you completed the above steps?")
-	ui.InfoMsg("   Type 'yes' to continue with Firebase initialization code setup")
-	ui.InfoMsg("   Type 'no' or press Enter to skip code setup for now")
-	ui.InfoMsg("")
-
-	var response string
-	fmt.Print("Continue with code setup? (yes/no): ")
-	fmt.Scanln(&response)
-
-	response = strings.ToLower(strings.TrimSpace(response))
-	if response != "yes" && response != "y" {
+	steps := []string{
+		"Open your Xcode project",
+		"Go to File → Add Package Dependencies...",
+		"Enter this URL: https://github.com/firebase/firebase-ios-sdk",
+		"Select version 10.24.0 or later",
+		"Add 'FirebaseCore' to your app target",
+		"Build your project to ensure dependencies are resolved",
+	}
+	
+	for i, step := range steps {
+		time.Sleep(200 * time.Millisecond)
+		ui.Step(i+1, step)
+	}
+	fmt.Println()
+	
+	// Ask user to confirm before proceeding with interactive prompt
+	response := ui.PromptWithSpinner("Have you completed the above steps?", []string{
+		"Yes - Continue with Firebase initialization code setup",
+		"No - Skip code setup for now",
+	})
+	
+	if response != "1" && strings.ToLower(response) != "yes" && strings.ToLower(response) != "y" {
 		ui.InfoMsg("⏸️  Code setup skipped. Run 'nativefire configure' again after adding Firebase SDK.")
 		ui.InfoMsg("💡 Reminder: Don't forget to add your GoogleService-Info.plist to your Xcode project!")
 		return fmt.Errorf("user chose to skip code setup")
 	}
-
-	ui.SuccessMsg("✅ Proceeding with Firebase initialization code setup...")
+	
+	ui.AnimatedSuccess("Proceeding with Firebase initialization code setup")
 	return nil
 }
 
