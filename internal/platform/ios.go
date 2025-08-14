@@ -300,12 +300,7 @@ func (p *IOSPlatform) addSwiftFirebaseInitialization(contentStr, appDelegatePath
 
 	// Add FirebaseApp.configure() in didFinishLaunchingWithOptions
 	if strings.Contains(contentStr, "didFinishLaunchingWithOptions") {
-		const swiftMethod = "func application(_ application: UIApplication, " +
-			"didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {"
-		const swiftMethodWithFirebase = "func application(_ application: UIApplication, " +
-			"didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {" +
-			"\n        FirebaseApp.configure()"
-		contentStr = strings.Replace(contentStr, swiftMethod, swiftMethodWithFirebase, 1)
+		contentStr = p.addFirebaseConfigureToSwiftMethod(contentStr)
 	}
 
 	// If FirebaseAppDelegateProxyEnabled is disabled, add required delegate methods
@@ -354,11 +349,7 @@ func (p *IOSPlatform) addObjCFirebaseInitialization(contentStr, appDelegatePath 
 
 	// Add [FIRApp configure]; in didFinishLaunchingWithOptions
 	if strings.Contains(contentStr, "didFinishLaunchingWithOptions") {
-		const objcMethod = "- (BOOL)application:(UIApplication *)application " +
-			"didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {"
-		const objcMethodWithFirebase = "- (BOOL)application:(UIApplication *)application " +
-			"didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {\n    [FIRApp configure];"
-		contentStr = strings.Replace(contentStr, objcMethod, objcMethodWithFirebase, 1)
+		contentStr = p.addFirebaseConfigureToObjCMethod(contentStr)
 	}
 
 	// If FirebaseAppDelegateProxyEnabled is disabled, add required delegate methods
@@ -873,6 +864,94 @@ struct ContentView_Previews: PreviewProvider {
 
 	ui.SuccessMsg(fmt.Sprintf("Created SwiftUI App file: %s", appFilePath))
 	return nil
+}
+
+func (p *IOSPlatform) addFirebaseConfigureToSwiftMethod(contentStr string) string {
+	lines := strings.Split(contentStr, "\n")
+	var newLines []string
+	configured := false
+
+	for i := 0; i < len(lines); i++ {
+		line := lines[i]
+		newLines = append(newLines, line)
+		
+		// Look for didFinishLaunchingWithOptions method and find the opening brace
+		if !configured && strings.Contains(line, "didFinishLaunchingWithOptions") {
+			// Find the opening brace - it could be on the same line or next lines
+			braceFound := false
+			if strings.Contains(line, "{") {
+				// Brace is on same line
+				newLines = append(newLines, "        FirebaseApp.configure()")
+				configured = true
+				braceFound = true
+			} else {
+				// Look for brace in next few lines
+				for j := i + 1; j < len(lines) && j < i+5; j++ {
+					nextLine := lines[j]
+					newLines = append(newLines, nextLine)
+					if strings.Contains(nextLine, "{") {
+						newLines = append(newLines, "        FirebaseApp.configure()")
+						configured = true
+						braceFound = true
+						i = j // Skip to after the brace line
+						break
+					}
+				}
+			}
+			
+			if !braceFound {
+				// Fallback: couldn't find brace, add after current line
+				newLines = append(newLines, "        FirebaseApp.configure()")
+				configured = true
+			}
+		}
+	}
+	
+	return strings.Join(newLines, "\n")
+}
+
+func (p *IOSPlatform) addFirebaseConfigureToObjCMethod(contentStr string) string {
+	lines := strings.Split(contentStr, "\n")
+	var newLines []string
+	configured := false
+
+	for i := 0; i < len(lines); i++ {
+		line := lines[i]
+		newLines = append(newLines, line)
+		
+		// Look for didFinishLaunchingWithOptions method and find the opening brace
+		if !configured && strings.Contains(line, "didFinishLaunchingWithOptions") {
+			// Find the opening brace - it could be on the same line or next lines
+			braceFound := false
+			if strings.Contains(line, "{") {
+				// Brace is on same line
+				newLines = append(newLines, "    [FIRApp configure];")
+				configured = true
+				braceFound = true
+			} else {
+				// Look for brace in next few lines
+				for j := i + 1; j < len(lines) && j < i+5; j++ {
+					nextLine := lines[j]
+					newLines = append(newLines, nextLine)
+					if strings.Contains(nextLine, "{") {
+						newLines = append(newLines, "    [FIRApp configure];")
+						configured = true
+						braceFound = true
+						i = j // Skip to after the brace line
+						break
+					}
+				}
+			}
+			
+			if !braceFound {
+				// Fallback: couldn't find brace, add after current line
+				newLines = append(newLines, "    [FIRApp configure];")
+				configured = true
+			}
+		}
+	}
+	
+	return strings.Join(newLines, "\n")
 }
 
 func (p *IOSPlatform) runPackageManagerCommands() error {
