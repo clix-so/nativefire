@@ -36,7 +36,8 @@ var configureCmd = &cobra.Command{
 		"  • 🔍 Bundle ID and Package Name auto-detection\n\n" +
 		ui.Bold.Sprint("Quick Examples:") + "\n" +
 		"  " + ui.Code("nativefire configure") + "                               # Full auto mode (default)\n" +
-		"  " + ui.Code("nativefire configure --project my-app") + "              # Auto-detect platform for specific project\n" +
+		"  " + ui.Code("nativefire configure --project my-app") +
+		"              # Auto-detect platform for specific project\n" +
 		"  " + ui.Code("nativefire configure --project my-app --platform ios") + "  # Explicit platform\n\n" +
 		ui.Bold.Sprint("Platform-Specific Options:") + "\n" +
 		"  " + ui.Code("--bundle-id") + "     - iOS/macOS Bundle Identifier\n" +
@@ -51,7 +52,8 @@ func init() {
 
 	configureCmd.Flags().StringVarP(&projectID, "project", "p", "", "Firebase project ID (will prompt if not provided)")
 	configureCmd.Flags().StringVar(&platformFlag, "platform", "", "Target platform (android, ios, macos, windows, linux)")
-	configureCmd.Flags().BoolVar(&autoDetect, "auto-detect", true, "Automatically detect the platform (enabled by default)")
+	configureCmd.Flags().BoolVar(&autoDetect, "auto-detect", true,
+		"Automatically detect the platform (enabled by default)")
 	configureCmd.Flags().StringVar(&appID, "app-id", "", "Firebase app ID (optional, will generate if not provided)")
 	configureCmd.Flags().StringVar(&bundleID, "bundle-id", "",
 		"iOS Bundle ID (will auto-detect or generate if not provided)")
