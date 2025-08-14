@@ -1,0 +1,62 @@
+run:
+  timeout: 5m
+  tests: true
+
+linters:
+  enable:
+    - gofmt
+    - goimports
+    - govet
+    - errcheck
+    - staticcheck
+    - unused
+    - gosimple
+    - ineffassign
+    - typecheck
+    - goconst
+    - misspell
+    - lll
+    - unconvert
+    - gocritic
+    - gocyclo
+    - revive
+
+linters-settings:
+  lll:
+    line-length: 120
+  
+  gocyclo:
+    min-complexity: 15
+  
+  goconst:
+    min-len: 3
+    min-occurrences: 3
+  
+  revive:
+    rules:
+      - name: exported
+        disabled: false
+      - name: package-comments
+        disabled: true
+
+issues:
+  exclude-rules:
+    - path: _test\.go
+      linters:
+        - gosec
+        - lll
+        - gocyclo
+    
+    - path: testdata/
+      linters:
+        - all
+    
+    - path: scripts/
+      linters:
+        - all
+
+output:
+  formats:
+    - format: colored-line-number
+  print-issued-lines: true
+  print-linter-name: true

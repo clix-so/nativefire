@@ -1,0 +1,7 @@
+platform :ios, '12.0'
+
+target 'NativefireTest1' do
+  pod 'Firebase/Core'
+  pod 'Firebase/Analytics'
+  use_frameworks!
+end

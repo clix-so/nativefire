@@ -1,0 +1,44 @@
+{
+  "name": "nativefire",
+  "version": "1.0.0",
+  "description": "Simplify Firebase setup in native development environments",
+  "bin": {
+    "nativefire": "./bin/nativefire"
+  },
+  "scripts": {
+    "postinstall": "node scripts/install.js",
+    "preuninstall": "node scripts/uninstall.js"
+  },
+  "keywords": [
+    "firebase",
+    "native",
+    "android",
+    "ios",
+    "macos",
+    "windows",
+    "linux",
+    "cli"
+  ],
+  "author": "NativeFire Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/clix-so/nativefire.git"
+  },
+  "homepage": "https://github.com/clix-so/nativefire",
+  "bugs": {
+    "url": "https://github.com/clix-so/nativefire/issues"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "os": [
+    "darwin",
+    "linux",
+    "win32"
+  ],
+  "cpu": [
+    "x64",
+    "arm64"
+  ]
+}
