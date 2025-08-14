@@ -78,6 +78,7 @@ func (p *IOSPlatform) InstallConfig(config *firebase.Config) error {
 	}
 
 	if err := os.WriteFile(targetPath, sourceData, 0644); err != nil {
+		ui.WarningMsg("Please add GoogleService-Info.plist to your Xcode project manually")
 		return fmt.Errorf("failed to write config file to %s: %w", targetPath, err)
 	}
 
@@ -87,19 +88,31 @@ func (p *IOSPlatform) InstallConfig(config *firebase.Config) error {
 	}
 
 	ui.SuccessMsg(fmt.Sprintf("Configuration file installed at: %s", targetPath))
-	ui.WarningMsg("Please add GoogleService-Info.plist to your Xcode project manually")
 	return nil
 }
 
 func (p *IOSPlatform) AddInitializationCode(config *firebase.Config) error {
 	podfilePath := p.findPodfile()
 	podsAdded := false
+	spmSetup := false
 
 	if podfilePath != "" {
 		if err := p.addFirebasePods(podfilePath); err != nil {
 			return err
 		}
 		podsAdded = true
+	} else if p.hasSwiftPackages() {
+		// Handle existing Package.swift projects
+		if err := p.setupSPMPackageSwift(); err != nil {
+			return nil // User chose to skip
+		}
+		spmSetup = true
+	} else if p.shouldUseSPM() {
+		// Handle Xcode projects that should use SPM
+		if err := p.setupSPMFirebase(); err != nil {
+			return nil // User chose to skip
+		}
+		spmSetup = true
 	}
 
 	appDelegatePath := p.findAppDelegate()
@@ -121,7 +134,7 @@ func (p *IOSPlatform) AddInitializationCode(config *firebase.Config) error {
 	}
 
 	// Run package manager commands after all changes
-	if podsAdded {
+	if podsAdded || spmSetup {
 		return p.runPackageManagerCommands()
 	}
 
@@ -256,15 +269,21 @@ func (p *IOSPlatform) addSwiftFirebaseInitialization(contentStr, appDelegatePath
 		return nil
 	}
 
-	// Add Firebase import
-	if !strings.Contains(contentStr, "import Firebase") {
-		if strings.Contains(contentStr, "import UIKit") {
-			contentStr = strings.Replace(contentStr,
-				"import UIKit",
-				"import UIKit\nimport Firebase", 1)
+	// Add FirebaseCore import if not present
+	if !strings.Contains(contentStr, "import FirebaseCore") {
+		// Replace import Firebase with import FirebaseCore if it exists
+		if strings.Contains(contentStr, "import Firebase") {
+			contentStr = strings.Replace(contentStr, "import Firebase", "import FirebaseCore", 1)
 		} else {
-			// Add import at the beginning
-			contentStr = "import Firebase\n" + contentStr
+			// Add new import
+			if strings.Contains(contentStr, "import UIKit") {
+				contentStr = strings.Replace(contentStr,
+					"import UIKit",
+					"import UIKit\nimport FirebaseCore", 1)
+			} else {
+				// Add import at the beginning
+				contentStr = "import FirebaseCore\n" + contentStr
+			}
 		}
 	}
 
@@ -302,16 +321,23 @@ func (p *IOSPlatform) addObjCFirebaseInitialization(contentStr, appDelegatePath 
 		return nil
 	}
 
-	// Add Firebase import
-	if !strings.Contains(contentStr, "@import Firebase;") &&
-		!strings.Contains(contentStr, "#import <Firebase/Firebase.h>") {
-		if strings.Contains(contentStr, "#import \"AppDelegate.h\"") {
-			contentStr = strings.Replace(contentStr,
-				"#import \"AppDelegate.h\"",
-				"#import \"AppDelegate.h\"\n@import Firebase;", 1)
+	// Add FirebaseCore import if not present
+	if !strings.Contains(contentStr, "@import FirebaseCore;") && !strings.Contains(contentStr, "#import <FirebaseCore/FirebaseCore.h>") {
+		// Replace existing Firebase imports with FirebaseCore
+		if strings.Contains(contentStr, "@import Firebase;") {
+			contentStr = strings.Replace(contentStr, "@import Firebase;", "@import FirebaseCore;", 1)
+		} else if strings.Contains(contentStr, "#import <Firebase/Firebase.h>") {
+			contentStr = strings.Replace(contentStr, "#import <Firebase/Firebase.h>", "#import <FirebaseCore/FirebaseCore.h>", 1)
 		} else {
-			// Add import at the beginning
-			contentStr = "@import Firebase;\n" + contentStr
+			// Add new import
+			if strings.Contains(contentStr, "#import \"AppDelegate.h\"") {
+				contentStr = strings.Replace(contentStr,
+					"#import \"AppDelegate.h\"",
+					"#import \"AppDelegate.h\"\n@import FirebaseCore;", 1)
+			} else {
+				// Add import at the beginning
+				contentStr = "@import FirebaseCore;\n" + contentStr
+			}
 		}
 	}
 
@@ -512,6 +538,7 @@ func (p *IOSPlatform) createSwiftAppDelegate(projectPath string) (string, error)
 	}
 
 	swiftContent := `import UIKit
+import FirebaseCore
 
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -576,6 +603,7 @@ func (p *IOSPlatform) createObjCAppDelegate(projectPath string) (string, error) 
 
 	// Create AppDelegate.m
 	implementationContent := `#import "AppDelegate.h"
+@import FirebaseCore;
 
 @implementation AppDelegate
 
@@ -663,6 +691,7 @@ func (p *IOSPlatform) createSwiftUIAppDelegateIntegration(projectPath string) (s
 
 	// Create AppDelegate for SwiftUI
 	swiftUIAppDelegateContent := `import UIKit
+import FirebaseCore
 
 class AppDelegate: NSObject, UIApplicationDelegate {
     
@@ -829,7 +858,7 @@ struct ContentView_Previews: PreviewProvider {
 func (p *IOSPlatform) runPackageManagerCommands() error {
 	ui.InfoMsg("Running package manager commands...")
 
-	// Check for CocoaPods
+	// Check for CocoaPods first (preferred if Podfile exists)
 	if p.findPodfile() != "" {
 		return p.runPodInstall()
 	}
@@ -839,7 +868,22 @@ func (p *IOSPlatform) runPackageManagerCommands() error {
 		return p.updateSwiftPackages()
 	}
 
-	ui.InfoMsg("No package manager detected")
+	// If no package manager is detected, provide guidance
+	ui.InfoMsg("📦 No package manager detected")
+	ui.InfoMsg("")
+	ui.InfoMsg("To proceed with Firebase setup, please choose a dependency manager:")
+	ui.InfoMsg("")
+	ui.InfoMsg("Option 1 - CocoaPods:")
+	ui.InfoMsg("  1. Install CocoaPods: sudo gem install cocoapods")
+	ui.InfoMsg("  2. Create Podfile: pod init")
+	ui.InfoMsg("  3. Run 'nativefire configure' again")
+	ui.InfoMsg("")
+	ui.InfoMsg("Option 2 - Swift Package Manager (recommended):")
+	ui.InfoMsg("  1. Open your Xcode project")
+	ui.InfoMsg("  2. Go to File → Add Package Dependencies...")
+	ui.InfoMsg("  3. Add: https://github.com/firebase/firebase-ios-sdk")
+	ui.InfoMsg("  4. Run 'nativefire configure' again")
+	ui.InfoMsg("")
 	return nil
 }
 
@@ -867,7 +911,30 @@ func (p *IOSPlatform) runPodInstall() error {
 
 func (p *IOSPlatform) hasSwiftPackages() bool {
 	// Check for Package.swift or .swiftpm directory
-	return fileExists("Package.swift") || fileExists(".swiftpm")
+	if fileExists("Package.swift") || fileExists(".swiftpm") {
+		return true
+	}
+
+	// Check for Xcode project with SPM dependencies
+	xcodeproj := findFile(".", "*.xcodeproj")
+	if xcodeproj != "" {
+		// Check for Package.resolved in project directory
+		packageResolved := filepath.Join(xcodeproj, "project.xcworkspace/xcshareddata/swiftpm/Package.resolved")
+		if fileExists(packageResolved) {
+			return true
+		}
+	}
+
+	return false
+}
+
+func (p *IOSPlatform) shouldUseSPM() bool {
+	// Prefer SPM if we find an Xcode project but no Podfile
+	xcodeproj := findFile(".", "*.xcodeproj")
+	podfile := p.findPodfile()
+
+	// Use SPM if we have an Xcode project but no Podfile
+	return xcodeproj != "" && podfile == ""
 }
 
 func (p *IOSPlatform) updateSwiftPackages() error {
@@ -881,6 +948,77 @@ func (p *IOSPlatform) updateSwiftPackages() error {
 	}
 
 	ui.SuccessMsg("Swift Package dependencies resolved successfully!")
+	return nil
+}
+
+func (p *IOSPlatform) setupSPMFirebase() error {
+	ui.InfoMsg("🔥 Firebase iOS SDK Setup Required")
+	ui.InfoMsg("")
+	ui.InfoMsg("Please add Firebase iOS SDK to your Xcode project using Swift Package Manager:")
+	ui.InfoMsg("")
+	ui.InfoMsg("📋 Steps to follow:")
+	ui.InfoMsg("  1. Open your Xcode project")
+	ui.InfoMsg("  2. Go to File → Add Package Dependencies...")
+	ui.InfoMsg("  3. Enter this URL: https://github.com/firebase/firebase-ios-sdk")
+	ui.InfoMsg("  4. Select version 10.24.0 or later")
+	ui.InfoMsg("  5. Add 'FirebaseCore' to your app target")
+	ui.InfoMsg("  6. Build your project to ensure dependencies are resolved")
+	ui.InfoMsg("")
+
+	// Ask user to confirm before proceeding
+	ui.InfoMsg("🤔 Have you completed the above steps?")
+	ui.InfoMsg("   Type 'yes' to continue with Firebase initialization code setup")
+	ui.InfoMsg("   Type 'no' or press Enter to skip code setup for now")
+	ui.InfoMsg("")
+
+	var response string
+	fmt.Print("Continue with code setup? (yes/no): ")
+	fmt.Scanln(&response)
+
+	response = strings.ToLower(strings.TrimSpace(response))
+	if response != "yes" && response != "y" {
+		ui.InfoMsg("⏸️  Code setup skipped. Run 'nativefire configure' again after adding Firebase SDK.")
+		ui.InfoMsg("💡 Reminder: Don't forget to add your GoogleService-Info.plist to your Xcode project!")
+		return fmt.Errorf("user chose to skip code setup")
+	}
+
+	ui.SuccessMsg("✅ Proceeding with Firebase initialization code setup...")
+	return nil
+}
+
+func (p *IOSPlatform) setupSPMPackageSwift() error {
+	ui.InfoMsg("🔥 Firebase iOS SDK Setup Required")
+	ui.InfoMsg("")
+	ui.InfoMsg("Detected Package.swift project. Please add Firebase iOS SDK dependency:")
+	ui.InfoMsg("")
+	ui.InfoMsg("📋 Add this to your Package.swift dependencies:")
+	ui.InfoMsg(`  .package(url: "https://github.com/firebase/firebase-ios-sdk", from: "10.24.0")`)
+	ui.InfoMsg("")
+	ui.InfoMsg("📋 Add FirebaseCore to your target dependencies:")
+	ui.InfoMsg(`  .product(name: "FirebaseCore", package: "firebase-ios-sdk")`)
+	ui.InfoMsg("")
+	ui.InfoMsg("📋 Then run:")
+	ui.InfoMsg("  swift package resolve")
+	ui.InfoMsg("")
+
+	// Ask user to confirm before proceeding
+	ui.InfoMsg("🤔 Have you completed the above steps?")
+	ui.InfoMsg("   Type 'yes' to continue with Firebase initialization code setup")
+	ui.InfoMsg("   Type 'no' or press Enter to skip code setup for now")
+	ui.InfoMsg("")
+
+	var response string
+	fmt.Print("Continue with code setup? (yes/no): ")
+	fmt.Scanln(&response)
+
+	response = strings.ToLower(strings.TrimSpace(response))
+	if response != "yes" && response != "y" {
+		ui.InfoMsg("⏸️  Code setup skipped. Run 'nativefire configure' again after adding Firebase SDK.")
+		ui.InfoMsg("💡 Reminder: Don't forget to add your GoogleService-Info.plist to your project!")
+		return fmt.Errorf("user chose to skip code setup")
+	}
+
+	ui.SuccessMsg("✅ Proceeding with Firebase initialization code setup...")
 	return nil
 }
 
