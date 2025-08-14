@@ -2,7 +2,7 @@ BINARY_NAME=nativefire
 VERSION=1.0.0
 BUILD_DIR=build
 
-.PHONY: build clean test install
+.PHONY: build clean test install lint lint-fix format check
 
 build:
 	mkdir -p $(BUILD_DIR)
@@ -31,3 +31,31 @@ install: build
 
 uninstall:
 	rm -f /usr/local/bin/$(BINARY_NAME)
+
+# Linting and formatting
+format:
+	@echo "🎨 Formatting code..."
+	gofmt -w .
+	@echo "✅ Code formatted!"
+
+lint:
+	@echo "🔍 Running lint checks..."
+	@if command -v golangci-lint >/dev/null 2>&1; then \
+		golangci-lint run --timeout=5m; \
+	else \
+		echo "⚠️ golangci-lint not installed, running basic checks..."; \
+		./scripts/lint-check.sh; \
+	fi
+
+lint-fix:
+	@echo "🔧 Running lint with auto-fix..."
+	@if command -v golangci-lint >/dev/null 2>&1; then \
+		golangci-lint run --timeout=5m --fix; \
+	else \
+		echo "⚠️ golangci-lint not installed, running format only..."; \
+		make format; \
+	fi
+
+check:
+	@echo "✅ Running all checks (like CI)..."
+	@./scripts/lint-check.sh

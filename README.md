@@ -276,6 +276,35 @@ make build-all
 make test
 ```
 
+### Code Quality & Linting
+
+NativeFire uses comprehensive linting and formatting to maintain code quality:
+
+```bash
+# Format code
+make format
+
+# Run all quality checks (formatting, vet, build, tests)
+make check
+
+# Run linting (requires golangci-lint)
+make lint
+
+# Run linting with auto-fix
+make lint-fix
+```
+
+#### Installing golangci-lint (optional)
+```bash
+# macOS
+brew install golangci-lint
+
+# Linux/Windows
+curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.55.0
+```
+
+The GitHub Actions CI automatically runs linting checks. You can run the same checks locally with `make check`.
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

@@ -78,6 +78,7 @@ func (p *IOSPlatform) InstallConfig(config *firebase.Config) error {
 	}
 
 	if err := os.WriteFile(targetPath, sourceData, 0644); err != nil {
+		ui.AnimatedError("Failed to write configuration file")
 		ui.WarningMsg("Please add GoogleService-Info.plist to your Xcode project manually")
 		return fmt.Errorf("failed to write config file to %s: %w", targetPath, err)
 	}
@@ -87,7 +88,7 @@ func (p *IOSPlatform) InstallConfig(config *firebase.Config) error {
 		os.Remove(config.ConfigFile)
 	}
 
-	ui.SuccessMsg(fmt.Sprintf("Configuration file installed at: %s", targetPath))
+	ui.AnimatedSuccess(fmt.Sprintf("Configuration file installed at: %s", targetPath))
 	return nil
 }
 
@@ -117,19 +118,28 @@ func (p *IOSPlatform) AddInitializationCode(config *firebase.Config) error {
 
 	appDelegatePath := p.findAppDelegate()
 	if appDelegatePath == "" {
-		// AppDelegate not found, create one
-		ui.InfoMsg("AppDelegate not found, creating one...")
-		var err error
-		appDelegatePath, err = p.createAppDelegate()
+		// AppDelegate not found, create one with animation
+		var newAppDelegatePath string
+		err := ui.ShowLoader("Creating AppDelegate", func() error {
+			var createErr error
+			newAppDelegatePath, createErr = p.createAppDelegate()
+			return createErr
+		})
+
 		if err != nil {
-			ui.WarningMsg(fmt.Sprintf("Failed to create AppDelegate: %v", err))
+			ui.AnimatedError("Failed to create AppDelegate")
 			ui.WarningMsg("Please manually add Firebase initialization code")
 			return nil
 		}
-		ui.SuccessMsg(fmt.Sprintf("Created AppDelegate at: %s", appDelegatePath))
+		appDelegatePath = newAppDelegatePath
+		ui.AnimatedSuccess(fmt.Sprintf("Created AppDelegate at: %s", appDelegatePath))
 	}
 
-	if err := p.addFirebaseInitialization(appDelegatePath); err != nil {
+	// Add Firebase initialization with loading animation
+	err := ui.ShowLoader("Adding Firebase initialization code", func() error {
+		return p.addFirebaseInitialization(appDelegatePath)
+	})
+	if err != nil {
 		return err
 	}
 
@@ -888,25 +898,34 @@ func (p *IOSPlatform) runPackageManagerCommands() error {
 }
 
 func (p *IOSPlatform) runPodInstall() error {
-	ui.InfoMsg("Installing CocoaPods dependencies...")
+	// Check if pod command exists with spinner
+	checkSpinner := ui.NewDotsSpinner("Checking CocoaPods installation...")
+	checkSpinner.Start()
 
-	// Check if pod command exists
-	if err := p.checkPodCommand(); err != nil {
-		ui.WarningMsg("CocoaPods not found. Please install CocoaPods and run 'pod install' manually")
+	err := p.checkPodCommand()
+	checkSpinner.Stop()
+
+	if err != nil {
+		ui.AnimatedError("CocoaPods not found")
+		ui.WarningMsg("Please install CocoaPods and run 'pod install' manually")
 		ui.InfoMsg("Install CocoaPods: sudo gem install cocoapods")
 		return nil
 	}
 
-	// Run pod install
-	if err := p.runCommand("pod", []string{"install"}, "Installing CocoaPods dependencies"); err != nil {
-		ui.WarningMsg("Failed to run 'pod install'. Please run it manually")
-		ui.InfoMsg("Run: pod install")
-		return nil
-	}
+	ui.AnimatedSuccess("CocoaPods found")
 
-	ui.SuccessMsg("CocoaPods dependencies installed successfully!")
-	ui.InfoMsg("Make sure to open the .xcworkspace file in Xcode, not the .xcodeproj file")
-	return nil
+	// Run pod install with spinner
+	return ui.ShowLoader("Installing CocoaPods dependencies", func() error {
+		if err := p.runCommand("pod", []string{"install"}, "Installing CocoaPods dependencies"); err != nil {
+			ui.WarningMsg("Failed to run 'pod install'. Please run it manually")
+			ui.InfoMsg("Run: pod install")
+			return err
+		}
+
+		ui.SuccessMsg("CocoaPods dependencies installed successfully!")
+		ui.InfoMsg("Make sure to open the .xcworkspace file in Xcode, not the .xcodeproj file")
+		return nil
+	})
 }
 
 func (p *IOSPlatform) hasSwiftPackages() bool {
@@ -938,17 +957,16 @@ func (p *IOSPlatform) shouldUseSPM() bool {
 }
 
 func (p *IOSPlatform) updateSwiftPackages() error {
-	ui.InfoMsg("Updating Swift Package dependencies...")
+	return ui.ShowLoader("Resolving Swift Package dependencies", func() error {
+		if err := p.runCommand("swift", []string{"package", "resolve"}, "Resolving Swift Package dependencies"); err != nil {
+			ui.WarningMsg("Failed to resolve Swift packages. Please update them manually in Xcode")
+			ui.InfoMsg("In Xcode: File > Package Dependencies > Reset Package Caches")
+			return err
+		}
 
-	// For SPM projects, we can try to resolve packages
-	if err := p.runCommand("swift", []string{"package", "resolve"}, "Resolving Swift Package dependencies"); err != nil {
-		ui.WarningMsg("Failed to resolve Swift packages. Please update them manually in Xcode")
-		ui.InfoMsg("In Xcode: File > Package Dependencies > Reset Package Caches")
+		ui.SuccessMsg("Swift Package dependencies resolved successfully!")
 		return nil
-	}
-
-	ui.SuccessMsg("Swift Package dependencies resolved successfully!")
-	return nil
+	})
 }
 
 func (p *IOSPlatform) setupSPMFirebase() error {
