@@ -1,7 +1,0 @@
-platform :ios, '12.0'
-
-target 'TestSpecialChars' do
-  pod 'Firebase/Core'
-  pod 'Firebase/Analytics'
-  use_frameworks!
-end

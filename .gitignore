@@ -45,5 +45,22 @@ node_modules/
 *.tmp
 *.temp
 
-# Firebase tools logs
+# Firebase tools logs and debug files
 firepit-log.txt
+firebase-debug.log
+*-debug.log
+
+# Firebase config files (should not be committed to public repos)
+GoogleService-Info.plist
+google-services.json
+
+# Coverage reports
+coverage.html
+coverage.out
+
+# Compiled binaries
+nativefire
+
+# Test directories and temporary test fixtures
+test-*/
+*-test-*/
