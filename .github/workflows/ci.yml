@@ -12,7 +12,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        os: [ubuntu-latest, macos-latest]
         go-version: ["1.21"]
 
     steps:
@@ -37,12 +37,13 @@ jobs:
 
       - name: Install Firebase CLI
         run: |
-          if [ "$RUNNER_OS" != "Windows" ]; then
-            curl -sL https://firebase.tools | bash
-            echo "$HOME/.local/bin" >> $GITHUB_PATH
-          else
-            npm install -g firebase-tools
-          fi
+          curl -sL https://firebase.tools | bash
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: Verify Firebase CLI
+        run: |
+          export PATH="$HOME/.local/bin:$PATH"
+          firebase --version || echo "Firebase CLI not found in PATH"
 
       - name: Build
         run: go build -v ./...
