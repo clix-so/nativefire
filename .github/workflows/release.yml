@@ -59,6 +59,10 @@ jobs:
         VERSION=${VERSION#v}
         sed -i "s/\"version\": \".*\"/\"version\": \"$VERSION\"/" package.json
         echo "Updated package.json to version: $VERSION"
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add package.json
+        git commit -m "chore: update package.json version to $VERSION" || exit 0
 
     - name: Run GoReleaser
       uses: goreleaser/goreleaser-action@v6
