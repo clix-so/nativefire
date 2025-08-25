@@ -95,6 +95,9 @@ func TestValidateProject(t *testing.T) {
 					if strings.Contains(err.Error(), "not authenticated") {
 						t.Skip("Not authenticated with Firebase")
 					}
+					if strings.Contains(err.Error(), "not found or you don't have access") {
+						t.Skip("Test project not accessible - integration test skipped")
+					}
 					t.Errorf("Unexpected error for project ID '%s': %v", tt.projectID, err)
 				}
 			}
