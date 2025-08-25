@@ -72,7 +72,7 @@ func runConfigure(cmd *cobra.Command, args []string) error {
 	if platformFlag != "" {
 		platformForCheck = platformFlag
 	}
-	
+
 	if err := dependencies.PreflightCheck(platformForCheck); err != nil {
 		return fmt.Errorf("dependency check failed: %w", err)
 	}

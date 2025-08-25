@@ -68,7 +68,6 @@ jobs:
           args: release --clean
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          HOMEBREW_TAP_GITHUB_TOKEN: ${{ secrets.HOMEBREW_TAP_GITHUB_TOKEN }}
 
       - name: Publish to npm
         run: |
@@ -97,7 +96,7 @@ jobs:
         run: |
           if command -v brew &> /dev/null; then
             # Add the tap and install
-            brew tap clix-so/tap
+            brew tap clix-so/nativefire
             brew install nativefire
             nativefire --version
           else

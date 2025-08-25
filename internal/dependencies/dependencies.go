@@ -10,13 +10,13 @@ import (
 
 // Dependency represents an external CLI tool dependency
 type Dependency struct {
-	Name          string
-	Command       string
-	Required      bool
-	Platform      string // "all", "ios", "android", "windows", "macos", "linux"
-	InstallURL    string
-	InstallCmd    string
-	Description   string
+	Name        string
+	Command     string
+	Required    bool
+	Platform    string // "all", "ios", "android", "windows", "macos", "linux"
+	InstallURL  string
+	InstallCmd  string
+	Description string
 }
 
 // Dependencies defines all external CLI dependencies
@@ -59,36 +59,36 @@ func CheckDependency(command string) error {
 // CheckAllDependencies checks all required dependencies for the current platform
 func CheckAllDependencies(platform string) []Dependency {
 	var missing []Dependency
-	
+
 	for _, dep := range Dependencies {
 		// Skip if dependency is not for this platform
 		if dep.Platform != "all" && dep.Platform != platform {
 			continue
 		}
-		
+
 		if err := CheckDependency(dep.Command); err != nil {
 			missing = append(missing, dep)
 		}
 	}
-	
+
 	return missing
 }
 
 // CheckRequiredDependencies checks only required dependencies
 func CheckRequiredDependencies(platform string) error {
 	missing := CheckAllDependencies(platform)
-	
+
 	var requiredMissing []Dependency
 	for _, dep := range missing {
 		if dep.Required {
 			requiredMissing = append(requiredMissing, dep)
 		}
 	}
-	
+
 	if len(requiredMissing) > 0 {
 		return &MissingDependencyError{Dependencies: requiredMissing}
 	}
-	
+
 	return nil
 }
 
@@ -97,19 +97,19 @@ func ShowMissingDependencies(missing []Dependency) {
 	if len(missing) == 0 {
 		return
 	}
-	
+
 	ui.AnimatedError("Missing dependencies detected")
 	fmt.Println()
-	
+
 	for _, dep := range missing {
 		if dep.Required {
 			ui.ErrorMsg(fmt.Sprintf("❌ %s (%s) - REQUIRED", dep.Name, dep.Command))
 		} else {
 			ui.WarningMsg(fmt.Sprintf("⚠️  %s (%s) - OPTIONAL", dep.Name, dep.Command))
 		}
-		
+
 		ui.InfoMsg(fmt.Sprintf("   %s", dep.Description))
-		
+
 		// Show installation instructions
 		ui.InfoMsg("   📋 Installation:")
 		if dep.InstallCmd != "" {
@@ -151,14 +151,14 @@ func GetPlatformFromOS() string {
 // PreflightCheck performs a comprehensive dependency check before operations
 func PreflightCheck(platform string) error {
 	ui.InfoMsg("🔍 Checking dependencies...")
-	
+
 	missing := CheckAllDependencies(platform)
-	
+
 	// Show all missing dependencies (required and optional)
 	if len(missing) > 0 {
 		ShowMissingDependencies(missing)
 	}
-	
+
 	// Check if any required dependencies are missing
 	var requiredMissing []Dependency
 	for _, dep := range missing {
@@ -166,12 +166,12 @@ func PreflightCheck(platform string) error {
 			requiredMissing = append(requiredMissing, dep)
 		}
 	}
-	
+
 	if len(requiredMissing) > 0 {
 		ui.AnimatedError("Cannot proceed without required dependencies")
 		return &MissingDependencyError{Dependencies: requiredMissing}
 	}
-	
+
 	// Show optional missing dependencies as warnings
 	var optionalMissing []Dependency
 	for _, dep := range missing {
@@ -179,12 +179,12 @@ func PreflightCheck(platform string) error {
 			optionalMissing = append(optionalMissing, dep)
 		}
 	}
-	
+
 	if len(optionalMissing) > 0 {
 		ui.WarningMsg(fmt.Sprintf("Some optional dependencies are missing (%d), but you can continue", len(optionalMissing)))
 	} else {
 		ui.AnimatedSuccess("All dependencies are available")
 	}
-	
+
 	return nil
 }

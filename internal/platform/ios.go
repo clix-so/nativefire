@@ -875,7 +875,7 @@ func (p *IOSPlatform) addFirebaseConfigureToSwiftMethod(contentStr string) strin
 	for i := 0; i < len(lines); i++ {
 		line := lines[i]
 		newLines = append(newLines, line)
-		
+
 		// Look for didFinishLaunchingWithOptions method and find the opening brace
 		if !configured && strings.Contains(line, "didFinishLaunchingWithOptions") {
 			// Find the opening brace - it could be on the same line or next lines
@@ -899,7 +899,7 @@ func (p *IOSPlatform) addFirebaseConfigureToSwiftMethod(contentStr string) strin
 					}
 				}
 			}
-			
+
 			if !braceFound {
 				// Fallback: couldn't find brace, add after current line
 				newLines = append(newLines, "        FirebaseApp.configure()")
@@ -907,7 +907,7 @@ func (p *IOSPlatform) addFirebaseConfigureToSwiftMethod(contentStr string) strin
 			}
 		}
 	}
-	
+
 	return strings.Join(newLines, "\n")
 }
 
@@ -919,7 +919,7 @@ func (p *IOSPlatform) addFirebaseConfigureToObjCMethod(contentStr string) string
 	for i := 0; i < len(lines); i++ {
 		line := lines[i]
 		newLines = append(newLines, line)
-		
+
 		// Look for didFinishLaunchingWithOptions method and find the opening brace
 		if !configured && strings.Contains(line, "didFinishLaunchingWithOptions") {
 			// Find the opening brace - it could be on the same line or next lines
@@ -943,7 +943,7 @@ func (p *IOSPlatform) addFirebaseConfigureToObjCMethod(contentStr string) string
 					}
 				}
 			}
-			
+
 			if !braceFound {
 				// Fallback: couldn't find brace, add after current line
 				newLines = append(newLines, "    [FIRApp configure];")
@@ -951,7 +951,7 @@ func (p *IOSPlatform) addFirebaseConfigureToObjCMethod(contentStr string) string
 			}
 		}
 	}
-	
+
 	return strings.Join(newLines, "\n")
 }
 
@@ -1051,7 +1051,7 @@ func (p *IOSPlatform) updateSwiftPackages() error {
 	ui.InfoMsg("")
 	ui.InfoMsg("Please ensure Firebase iOS SDK is properly added to your project:")
 	ui.InfoMsg("")
-	
+
 	if fileExists("Package.swift") {
 		ui.InfoMsg("For Package.swift projects:")
 		ui.InfoMsg("  1. Add Firebase dependency to Package.swift")
@@ -1065,7 +1065,7 @@ func (p *IOSPlatform) updateSwiftPackages() error {
 		ui.InfoMsg("  4. Select FirebaseCore product")
 		ui.InfoMsg("  5. Build your project to resolve dependencies")
 	}
-	
+
 	ui.InfoMsg("")
 	ui.SuccessMsg("Swift Package Manager setup guidance provided")
 	return nil
@@ -1074,10 +1074,10 @@ func (p *IOSPlatform) updateSwiftPackages() error {
 func (p *IOSPlatform) setupSPMFirebase() error {
 	ui.AnimatedHeader("Firebase iOS SDK Setup Required")
 	fmt.Println()
-	
+
 	ui.Typewriter("Please add Firebase iOS SDK to your Xcode project using Swift Package Manager:", 30*time.Millisecond)
 	fmt.Println()
-	
+
 	ui.InfoMsg("📋 Steps to follow:")
 	steps := []string{
 		"Open your Xcode project",
@@ -1087,25 +1087,25 @@ func (p *IOSPlatform) setupSPMFirebase() error {
 		"Add 'FirebaseCore' to your app target",
 		"Build your project to ensure dependencies are resolved",
 	}
-	
+
 	for i, step := range steps {
 		time.Sleep(200 * time.Millisecond)
 		ui.Step(i+1, step)
 	}
 	fmt.Println()
-	
+
 	// Ask user to confirm before proceeding with interactive prompt
 	response := ui.PromptWithSpinner("Have you completed the above steps?", []string{
 		"Yes - Continue with Firebase initialization code setup",
 		"No - Skip code setup for now",
 	})
-	
+
 	if response != "1" && strings.ToLower(response) != "yes" && strings.ToLower(response) != "y" {
 		ui.InfoMsg("⏸️  Code setup skipped. Run 'nativefire configure' again after adding Firebase SDK.")
 		ui.InfoMsg("💡 Reminder: Don't forget to add your GoogleService-Info.plist to your Xcode project!")
 		return fmt.Errorf("user chose to skip code setup")
 	}
-	
+
 	ui.AnimatedSuccess("Proceeding with Firebase initialization code setup")
 	return nil
 }

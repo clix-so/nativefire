@@ -63,7 +63,6 @@ brews:
     repository:
       owner: clix-so
       name: nativefire
-      token: "{{ .Env.GITHUB_TOKEN }}"
     directory: homebrew
     homepage: https://github.com/clix-so/nativefire
     description: "🚀 Simplify Firebase setup in native development environments"
