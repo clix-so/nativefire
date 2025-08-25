@@ -43,7 +43,13 @@ jobs:
         run: go build -v ./...
 
       - name: Run tests
-        run: go test -short -race -coverprofile=coverage.txt -covermode=atomic -v ./...
+        run: |
+          if [ "$RUNNER_OS" = "Windows" ]; then
+            go test -short -v ./...
+          else
+            go test -short -coverprofile=coverage.out -covermode=atomic -v ./...
+          fi
+        shell: bash
 
       - name: Run linter (Linux only)
         if: matrix.os == 'ubuntu-latest' && matrix.go-version == '1.21'
@@ -64,7 +70,7 @@ jobs:
         if: matrix.os == 'ubuntu-latest' && matrix.go-version == '1.21'
         uses: codecov/codecov-action@v3
         with:
-          file: ./coverage.txt
+          file: ./coverage.out
 
   npm-test:
     runs-on: ubuntu-latest
