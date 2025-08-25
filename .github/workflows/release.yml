@@ -62,7 +62,13 @@ jobs:
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
         git add package.json
-        git commit -m "chore: update package.json version to $VERSION" || exit 0
+        if git diff --staged --quiet; then
+          echo "No changes to commit"
+        else
+          git commit -m "chore: update package.json version to $VERSION"
+          git tag -f ${{ steps.version.outputs.VERSION }}
+          git push origin ${{ steps.version.outputs.VERSION }} --force
+        fi
 
     - name: Run GoReleaser
       uses: goreleaser/goreleaser-action@v6
