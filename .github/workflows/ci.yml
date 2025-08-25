@@ -3,13 +3,12 @@ name: CI
 on:
   push:
     branches: [ main, develop ]
-    tags-ignore:
-      - 'v*'
   pull_request:
     branches: [ main ]
 
 jobs:
   test:
+    name: Test
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -17,89 +16,65 @@ jobs:
         go-version: ['1.21']
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+    - name: Checkout
+      uses: actions/checkout@v4
 
-      - name: Set up Go
-        uses: actions/setup-go@v4
-        with:
-          go-version: ${{ matrix.go-version }}
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: ${{ matrix.go-version }}
 
-      - name: Cache Go modules
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cache/go-build
-            ~/go/pkg/mod
-          key: ${{ runner.os }}-go-${{ matrix.go-version }}-${{ hashFiles('**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-go-${{ matrix.go-version }}-
+    - name: Cache Go modules
+      uses: actions/cache@v4
+      with:
+        path: ~/go/pkg/mod
+        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-go-
 
-      - name: Download dependencies
-        run: go mod download
+    - name: Download dependencies
+      run: go mod download
 
-      - name: Verify dependencies
-        run: go mod verify
+    - name: Build
+      run: go build -v ./...
 
-      - name: Build
-        run: go build -v ./...
+    - name: Test
+      run: go test -short -v ./...
 
-      - name: Run tests
-        shell: bash
-        run: |
-          echo "Finding packages with tests..."
-          TEST_PKGS=$(go list -f '{{if .TestGoFiles}}{{.ImportPath}}{{end}}' ./...)
-          
-          if [ -z "$TEST_PKGS" ]; then
-            echo "No test packages found"
-            exit 0
-          fi
-          
-          echo "Found test packages:"
-          echo "$TEST_PKGS"
-          
-          if [ "$RUNNER_OS" = "Windows" ]; then
-            echo "Running Windows tests without coverage..."
-            echo "$TEST_PKGS" | xargs go test -short -v
-          else
-            echo "Running Unix tests with coverage..."
-            echo "$TEST_PKGS" | xargs go test -short -coverprofile=coverage.out -covermode=atomic -v
-          fi
-
-      - name: Run linter (Linux only)
-        if: matrix.os == 'ubuntu-latest' && matrix.go-version == '1.21'
-        run: |
-          echo "Running basic linter checks..."
-          gofmt -l . > /tmp/fmt_check || true
-          if [ -s /tmp/fmt_check ]; then
-            echo "❌ The following files are not properly formatted:"
-            cat /tmp/fmt_check
-            echo "Run: gofmt -w ."
-            exit 1
-          fi
-          echo "✅ Code formatting looks good!"
-          go vet ./...
-          echo "✅ Go vet passed!"
-
-      - name: Upload coverage to Codecov
-        if: matrix.os == 'ubuntu-latest' && matrix.go-version == '1.21'
-        uses: codecov/codecov-action@v3
-        with:
-          file: ./coverage.out
-
-  npm-test:
+  lint:
+    name: Lint
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+    - name: Checkout
+      uses: actions/checkout@v4
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18'
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.21'
 
-      - name: Test npm scripts
-        run: |
-          echo "Testing package.json scripts..."
-          npm run test
+    - name: Format check
+      run: |
+        if [ "$(gofmt -s -l . | wc -l)" -gt 0 ]; then
+          echo "The following files are not formatted:"
+          gofmt -s -l .
+          exit 1
+        fi
 
+    - name: Vet
+      run: go vet ./...
+
+  npm-test:
+    name: NPM Test
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+
+    - name: Test npm scripts
+      run: npm run test
