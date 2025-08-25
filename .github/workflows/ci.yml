@@ -48,10 +48,17 @@ jobs:
       - name: Run linter (Linux only)
         if: matrix.os == 'ubuntu-latest' && matrix.go-version == '1.21'
         run: |
-          if [ -f "./scripts/lint-check.sh" ]; then
-            chmod +x ./scripts/lint-check.sh
-            ./scripts/lint-check.sh
+          echo "Running basic linter checks..."
+          gofmt -l . > /tmp/fmt_check || true
+          if [ -s /tmp/fmt_check ]; then
+            echo "❌ The following files are not properly formatted:"
+            cat /tmp/fmt_check
+            echo "Run: gofmt -w ."
+            exit 1
           fi
+          echo "✅ Code formatting looks good!"
+          go vet ./...
+          echo "✅ Go vet passed!"
 
       - name: Upload coverage to Codecov
         if: matrix.os == 'ubuntu-latest' && matrix.go-version == '1.21'
