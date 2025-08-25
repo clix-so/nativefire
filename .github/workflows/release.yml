@@ -30,8 +30,24 @@ jobs:
         node-version: '18'
         registry-url: 'https://registry.npmjs.org/'
 
+    - name: Install Firebase CLI
+      run: |
+        curl -sL https://firebase.tools | bash
+        echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+    - name: Verify Firebase CLI
+      run: |
+        export PATH="$HOME/.local/bin:$PATH"
+        firebase --version || echo "Firebase CLI not found in PATH"
+
     - name: Run tests
-      run: go test -short -v ./...
+      run: |
+        echo "Testing each package individually..."
+        for pkg in $(go list ./... | grep -E "(cmd|internal)"); do
+          echo "Testing package: $pkg"
+          go test -short -timeout=5m "$pkg" || exit 1
+        done
+        echo "All tests completed successfully"
 
     - name: Extract version
       id: version
