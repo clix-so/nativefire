@@ -35,6 +35,15 @@ jobs:
       - name: Download dependencies
         run: go mod download
 
+      - name: Install Firebase CLI
+        run: |
+          if [ "$RUNNER_OS" != "Windows" ]; then
+            curl -sL https://firebase.tools | bash
+            echo "$HOME/.local/bin" >> $GITHUB_PATH
+          else
+            npm install -g firebase-tools
+          fi
+
       - name: Build
         run: go build -v ./...
 
@@ -43,7 +52,7 @@ jobs:
           echo "Testing each package individually..."
           for pkg in $(go list ./... | grep -E "(cmd|internal)"); do
             echo "Testing package: $pkg"
-            go test -short -timeout=5m "$pkg" >/dev/null 2>&1 || (echo "FAILED: $pkg" && go test -short -timeout=5m "$pkg" && exit 1)
+            go test -short -timeout=5m "$pkg" || exit 1
           done
           echo "All tests completed successfully"
 
