@@ -4,7 +4,7 @@ project_name: nativefire
 release:
   github:
     owner: clix-so
-    name: native-fire
+    name: nativefire
 builds:
   - id: nativefire
     main: main.go
@@ -29,11 +29,11 @@ brews:
   - name: nativefire
     repository:
       owner: clix-so
-      name: native-fire
+      name: nativefire
     commit_author:
       name: github-actions[bot]
       email: github-actions[bot]@users.noreply.github.com
-    homepage: "https://github.com/clix-so/native-fire"
+    homepage: "https://github.com/clix-so/nativefire"
     description: "🚀 Simplify Firebase setup in native development environments"
     test: |
       system "#{bin}/nativefire", "--version"
