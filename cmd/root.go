@@ -13,6 +13,19 @@ import (
 var cfgFile string
 var verbose bool
 
+// Version information
+var (
+	version = "dev"
+	commit  = "none"
+	date    = "unknown"
+)
+
+// SetVersion sets the version information
+func SetVersion(v, c, d string) {
+	version, commit, date = v, c, d
+	rootCmd.Version = fmt.Sprintf("%s (commit: %s, built: %s)", version, commit, date)
+}
+
 var rootCmd = &cobra.Command{
 	Use:   "nativefire",
 	Short: "🔥 Simplify Firebase setup in native development environments",

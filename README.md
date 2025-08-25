@@ -15,18 +15,33 @@ NativeFire is a CLI tool that automatically detects your native development envi
 
 ## Installation
 
-### Homebrew (macOS)
+### Homebrew (macOS/Linux) - Recommended
 ```bash
+# Add our tap and install
+brew tap clix-so/tap
 brew install nativefire
 ```
 
-### npm/npx
+### npm/npx - Cross-platform
 ```bash
 # Install globally
 npm install -g nativefire
 
 # Or use with npx (no installation required)
-npx nativefire --help
+npx nativefire@latest configure --help
+
+# Use latest version with npx
+npx nativefire@latest configure --auto-detect
+```
+
+### Docker (All platforms)
+```bash
+# Run directly with Docker
+docker run --rm -v $(pwd):/workspace ghcr.io/clix-so/nativefire:latest --help
+
+# Use as alias
+alias nativefire='docker run --rm -v $(pwd):/workspace ghcr.io/clix-so/nativefire:latest'
+nativefire configure --auto-detect
 ```
 
 ### Manual Installation

@@ -1,0 +1,106 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.21'
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          registry-url: 'https://registry.npmjs.org/'
+
+      - name: Run tests
+        run: |
+          go test -v ./...
+
+      - name: Run linter
+        run: |
+          if [ -f "./scripts/lint-check.sh" ]; then
+            ./scripts/lint-check.sh
+          fi
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract tag version
+        id: get_version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+
+      - name: Update package.json version
+        run: |
+          TAG_VERSION="${{ steps.get_version.outputs.VERSION }}"
+          # Remove 'v' prefix if it exists
+          VERSION=${TAG_VERSION#v}
+          # Update package.json version
+          sed -i "s/\"version\": \".*\"/\"version\": \"$VERSION\"/" package.json
+          echo "Updated package.json to version: $VERSION"
+          cat package.json | grep '"version"'
+
+      - name: Run GoReleaser
+        uses: goreleaser/goreleaser-action@v5
+        with:
+          distribution: goreleaser
+          version: latest
+          args: release --clean
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          HOMEBREW_TAP_GITHUB_TOKEN: ${{ secrets.HOMEBREW_TAP_GITHUB_TOKEN }}
+
+      - name: Publish to npm
+        run: |
+          echo "Publishing to npm..."
+          npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  # Test installation from different package managers
+  test-installation:
+    needs: release
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    steps:
+      - name: Test npm installation
+        run: |
+          # Wait a bit for npm to propagate the package
+          sleep 30
+          npx nativefire@latest --version
+        shell: bash
+
+      - name: Test Homebrew installation (macOS/Linux only)
+        if: matrix.os != 'windows-latest'
+        run: |
+          if command -v brew &> /dev/null; then
+            # Add the tap and install
+            brew tap clix-so/tap
+            brew install nativefire
+            nativefire --version
+          else
+            echo "Homebrew not available on this system"
+          fi
+        shell: bash

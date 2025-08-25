@@ -1,8 +1,8 @@
 class Nativefire < Formula
   desc "Simplify Firebase setup in native development environments"
   homepage "https://github.com/clix-so/nativefire"
-  url "https://github.com/clix-so/nativefire/archive/v1.0.0.tar.gz"
-  sha256 "REPLACE_WITH_ACTUAL_SHA256_HASH"
+  url "https://github.com/clix-so/nativefire/archive/refs/tags/v1.0.0.tar.gz"
+  sha256 "{{ .SHA256 }}"
   license "MIT"
 
   depends_on "go" => :build

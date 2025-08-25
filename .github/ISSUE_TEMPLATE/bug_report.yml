@@ -1,0 +1,140 @@
+name: Bug Report
+description: Report a bug or unexpected behavior
+title: "[Bug]: "
+labels: ["bug", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug! Please fill out the information below to help us debug the issue.
+        
+  - type: textarea
+    id: description
+    attributes:
+      label: Bug Description
+      description: A clear and concise description of what the bug is.
+      placeholder: Describe what happened and what you expected to happen
+    validations:
+      required: true
+      
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to Reproduce
+      description: Steps to reproduce the behavior
+      placeholder: |
+        1. Run command `nativefire configure --platform android`
+        2. Select project 'my-project'
+        3. See error message
+      value: |
+        1. 
+        2. 
+        3. 
+    validations:
+      required: true
+      
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: What you expected to happen
+      placeholder: The command should complete successfully and configure Firebase for Android
+    validations:
+      required: true
+      
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual Behavior
+      description: What actually happened
+      placeholder: The command failed with error "platform not detected"
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: NativeFire Version
+      description: What version of NativeFire are you running?
+      placeholder: "v1.0.0 (run `nativefire --version` to check)"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating System
+      description: What operating system are you using?
+      options:
+        - macOS
+        - Linux
+        - Windows
+        - Other (specify in additional context)
+    validations:
+      required: true
+      
+  - type: input
+    id: platform
+    attributes:
+      label: Target Platform
+      description: What platform were you trying to configure?
+      placeholder: "Android, iOS, macOS, Windows, Linux"
+
+  - type: dropdown
+    id: installation
+    attributes:
+      label: Installation Method
+      description: How did you install NativeFire?
+      options:
+        - Homebrew
+        - npm (global install)
+        - npx
+        - Docker
+        - Direct download
+        - Built from source
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Error Logs
+      description: Please copy and paste any relevant log output (run with `--verbose` for detailed logs)
+      render: shell
+      placeholder: |
+        $ nativefire configure --platform android --verbose
+        🔍 Checking dependencies...
+        Error: dependency check failed: required dependency missing: Firebase CLI
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment Details
+      description: Additional environment information
+      placeholder: |
+        - Go version: 1.21.0
+        - Node.js version: 18.17.0
+        - Firebase CLI version: 12.4.0
+        - Project type: Android/Gradle
+        - Shell: zsh/bash/powershell
+      
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional Context
+      description: Add any other context about the problem here
+      placeholder: This happens consistently when trying to configure projects in a specific directory structure
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Pre-submission Checklist
+      options:
+        - label: I have searched existing issues to ensure this is not a duplicate
+          required: true
+        - label: I have tried running the command with `--verbose` flag for detailed output
+          required: false
+        - label: I have verified my Firebase CLI is installed and authenticated (`firebase login`)
+          required: false
+        - label: I am using the latest version of NativeFire
+          required: false
