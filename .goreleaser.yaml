@@ -112,6 +112,10 @@ dockers:
       - "ghcr.io/clix-so/{{ .ProjectName }}:{{ .Version }}"
       - "ghcr.io/clix-so/{{ .ProjectName }}:latest"
     dockerfile: Dockerfile
+    context: .
+    extra_files:
+      - go.mod
+      - go.sum
     build_flag_templates:
       - "--pull"
       - "--label=org.opencontainers.image.created={{.Date}}"
