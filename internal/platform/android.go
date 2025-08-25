@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/clix-so/nativefire/internal/dependencies"
 	"github.com/clix-so/nativefire/internal/firebase"
 	"github.com/clix-so/nativefire/internal/ui"
 )
@@ -298,8 +299,7 @@ func (p *AndroidPlatform) runGradlew() error {
 }
 
 func (p *AndroidPlatform) hasSystemGradle() bool {
-	cmd := exec.Command("which", "gradle")
-	return cmd.Run() == nil
+	return dependencies.CheckDependency("gradle") == nil
 }
 
 func (p *AndroidPlatform) runSystemGradle() error {
@@ -317,6 +317,7 @@ func (p *AndroidPlatform) runSystemGradle() error {
 
 func (p *AndroidPlatform) runCommand(command string, args []string, description string) error {
 	ui.InfoMsg(fmt.Sprintf("Running: %s %s", command, strings.Join(args, " ")))
+	_ = description // Parameter kept for interface consistency
 
 	cmd := exec.Command(command, args...)
 	output, err := cmd.CombinedOutput()

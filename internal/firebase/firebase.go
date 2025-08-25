@@ -9,6 +9,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/clix-so/nativefire/internal/dependencies"
 	"github.com/clix-so/nativefire/internal/ui"
 )
 
@@ -77,8 +78,7 @@ func NewClient(verbose bool) *Client {
 }
 
 func (c *Client) checkFirebaseCLI() error {
-	_, err := exec.LookPath("firebase")
-	if err != nil {
+	if err := dependencies.CheckDependency("firebase"); err != nil {
 		return fmt.Errorf("firebase CLI not found. Please install it first: npm install -g firebase-tools")
 	}
 	return nil

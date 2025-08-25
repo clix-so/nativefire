@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/clix-so/nativefire/internal/dependencies"
 	"github.com/clix-so/nativefire/internal/firebase"
 	"github.com/clix-so/nativefire/internal/platform"
 	"github.com/clix-so/nativefire/internal/ui"
@@ -65,6 +66,16 @@ func init() {
 
 func runConfigure(cmd *cobra.Command, args []string) error {
 	verbose := viper.GetBool("verbose")
+
+	// Perform preflight dependency check
+	platformForCheck := "all"
+	if platformFlag != "" {
+		platformForCheck = platformFlag
+	}
+	
+	if err := dependencies.PreflightCheck(platformForCheck); err != nil {
+		return fmt.Errorf("dependency check failed: %w", err)
+	}
 
 	firebaseClient := firebase.NewClient(verbose)
 
@@ -137,6 +148,15 @@ func runConfigure(cmd *cobra.Command, args []string) error {
 	err = targetPlatform.InstallConfig(config)
 	if err != nil {
 		return fmt.Errorf("failed to install configuration: %w", err)
+	}
+
+	// Additional platform-specific dependency check before initialization
+	if verbose {
+		ui.InfoMsg("Checking platform-specific dependencies...")
+	}
+	platformSpecificMissing := dependencies.CheckAllDependencies(strings.ToLower(targetPlatform.Name()))
+	if len(platformSpecificMissing) > 0 {
+		dependencies.ShowMissingDependencies(platformSpecificMissing)
 	}
 
 	ui.Step(5, "Adding Firebase initialization code...")

@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/clix-so/nativefire/internal/dependencies"
 	"github.com/clix-so/nativefire/internal/firebase"
 	"github.com/clix-so/nativefire/internal/ui"
 )
@@ -1146,8 +1147,7 @@ func (p *IOSPlatform) setupSPMPackageSwift() error {
 }
 
 func (p *IOSPlatform) checkPodCommand() error {
-	cmd := exec.Command("which", "pod")
-	if err := cmd.Run(); err != nil {
+	if err := dependencies.CheckDependency("pod"); err != nil {
 		return fmt.Errorf("CocoaPods not found")
 	}
 	return nil
