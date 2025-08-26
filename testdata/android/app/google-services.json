@@ -1,0 +1,68 @@
+{
+  "project_info": {
+    "project_number": "484632677381",
+    "project_id": "clix-so-dev",
+    "storage_bucket": "clix-so-dev.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:484632677381:android:3803f3d6b8d5dc6235206c",
+        "android_client_info": {
+          "package_name": "com.example.myapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "484632677381-csdvkviklpbilkj1st5l4dfd630vkpau.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA-hCARxZDwxL0tR0at4PPLWU2d9WVeEPM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "484632677381-csdvkviklpbilkj1st5l4dfd630vkpau.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:484632677381:android:77e5fb5ac1b141a935206c",
+        "android_client_info": {
+          "package_name": "com.example.testapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "484632677381-csdvkviklpbilkj1st5l4dfd630vkpau.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA-hCARxZDwxL0tR0at4PPLWU2d9WVeEPM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "484632677381-csdvkviklpbilkj1st5l4dfd630vkpau.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

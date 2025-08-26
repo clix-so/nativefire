@@ -1,0 +1,71 @@
+{
+  "name": "nativefire",
+  "version": "1.0.0",
+  "description": "🚀 Simplify Firebase setup in native development environments with smart detection and automatic configuration",
+  "main": "index.js",
+  "bin": {
+    "nativefire": "./bin/nativefire"
+  },
+  "scripts": {
+    "postinstall": "node scripts/install.js",
+    "preuninstall": "node scripts/uninstall.js",
+    "test": "echo \"Use 'npm run test:install' to test installation\" && exit 0",
+    "test:install": "node scripts/install.js && ./bin/nativefire --version",
+    "clean": "node scripts/uninstall.js",
+    "prepare": "npm run clean"
+  },
+  "keywords": [
+    "firebase",
+    "native",
+    "android",
+    "ios",
+    "macos",
+    "windows",
+    "linux",
+    "cli",
+    "firebase-cli",
+    "mobile-development",
+    "cross-platform",
+    "configuration",
+    "setup",
+    "automation"
+  ],
+  "author": {
+    "name": "NativeFire Team",
+    "email": "team@nativefire.dev",
+    "url": "https://github.com/clix-so/nativefire"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/clix-so/nativefire.git"
+  },
+  "homepage": "https://github.com/clix-so/nativefire#readme",
+  "bugs": {
+    "url": "https://github.com/clix-so/nativefire/issues"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "os": [
+    "darwin",
+    "linux",
+    "win32"
+  ],
+  "cpu": [
+    "x64",
+    "arm64",
+    "ia32"
+  ],
+  "files": [
+    "bin/",
+    "scripts/",
+    "README.md",
+    "LICENSE"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "preferGlobal": true
+}

@@ -1,0 +1,86 @@
+run:
+  timeout: 5m
+  tests: true
+
+linters:
+  enable:
+    - gofmt
+    - goimports
+    - govet
+    - errcheck
+    - staticcheck
+    - unused
+    - gosimple
+    - ineffassign
+    - typecheck
+    - goconst
+    - misspell
+    - lll
+    - unconvert
+    - gocritic
+    - gocyclo
+    - revive
+    - gosec
+    - bodyclose
+    - noctx
+    - rowserrcheck
+    - exportloopref
+  disable:
+    - varnamelen  # Variable name length checks can be too strict
+
+linters-settings:
+  lll:
+    line-length: 120
+  
+  gocyclo:
+    min-complexity: 15
+  
+  goconst:
+    min-len: 3
+    min-occurrences: 3
+  
+  revive:
+    rules:
+      - name: exported
+        disabled: false
+      - name: package-comments
+        disabled: true
+      - name: var-naming
+        disabled: false
+      - name: context-as-argument
+        disabled: false
+  
+  gosec:
+    excludes:
+      - G104  # Allow unhandled errors in some cases
+      - G204  # Allow subprocess launched with variable (needed for our platform commands)
+
+issues:
+  exclude-rules:
+    - path: _test\.go
+      linters:
+        - gosec
+        - lll
+        - gocyclo
+    
+    - path: testdata/
+      linters:
+        - all
+    
+    - path: scripts/
+      linters:
+        - all
+    
+    - path: demo.*\.go
+      linters:
+        - all
+    
+    - path: test.*\.go
+      linters:
+        - all
+
+output:
+  formats:
+    - format: colored-line-number
+  print-issued-lines: true
+  print-linter-name: true

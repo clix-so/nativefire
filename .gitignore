@@ -1,0 +1,66 @@
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test binary, built with `go test -c`
+*.test
+
+# Output of the go coverage tool, specifically when used with LiteIDE
+*.out
+
+# Go workspace file
+go.work
+
+# Build directory
+build/
+bin/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Config files (user-specific)
+.nativefire.yaml
+.nativefire.yml
+
+# Node modules (for npm packaging)
+node_modules/
+
+# Temporary files
+*.tmp
+*.temp
+
+# Firebase tools logs and debug files
+firepit-log.txt
+firebase-debug.log
+*-debug.log
+
+# Firebase config files (should not be committed to public repos)
+GoogleService-Info.plist
+google-services.json
+
+# Coverage reports
+coverage.html
+coverage.out
+
+# Compiled binaries
+nativefire
+
+# Test directories and temporary test fixtures
+test-*/
+*-test-*/

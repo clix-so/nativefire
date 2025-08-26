@@ -1,0 +1,133 @@
+name: Feature Request
+description: Suggest a new feature or enhancement
+title: "[Feature]: "
+labels: ["enhancement", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for suggesting a new feature! Please provide as much detail as possible.
+        
+  - type: textarea
+    id: summary
+    attributes:
+      label: Feature Summary
+      description: A clear and concise description of the feature you'd like to see
+      placeholder: Add support for React Native projects
+    validations:
+      required: true
+      
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem Description
+      description: What problem would this feature solve? What is the current limitation?
+      placeholder: Currently, NativeFire doesn't support React Native projects, which makes it difficult to...
+    validations:
+      required: true
+      
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed Solution
+      description: How would you like this feature to work?
+      placeholder: |
+        I would like NativeFire to:
+        1. Detect React Native projects by looking for package.json with react-native dependency
+        2. Place configuration files in android/app/ and ios/ directories
+        3. Add initialization code to index.js or App.js
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: What alternative solutions or features have you considered?
+      placeholder: I considered manually setting up Firebase, but it's error-prone and time-consuming
+
+  - type: dropdown
+    id: platforms
+    attributes:
+      label: Target Platforms
+      description: Which platforms would this feature support?
+      multiple: true
+      options:
+        - Android
+        - iOS  
+        - macOS
+        - Windows
+        - Linux
+        - Web
+        - All platforms
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      description: How important is this feature to you?
+      options:
+        - Low (nice to have)
+        - Medium (would be helpful)
+        - High (needed for my workflow)
+        - Critical (blocker for adoption)
+    validations:
+      required: true
+
+  - type: textarea
+    id: usecase
+    attributes:
+      label: Use Case
+      description: Describe your specific use case and how this feature would help
+      placeholder: |
+        I'm working on a React Native app that needs Firebase Authentication and Firestore. 
+        Currently I have to manually configure both Android and iOS projects, which is tedious and error-prone.
+        This feature would save me 30+ minutes of setup time per project.
+
+  - type: textarea
+    id: examples
+    attributes:
+      label: Examples
+      description: Provide examples of similar features in other tools or detailed usage examples
+      placeholder: |
+        Similar to how FlutterFire CLI works for Flutter projects:
+        ```bash
+        flutterfire configure --project=my-project
+        ```
+        
+        For React Native, it could be:
+        ```bash
+        nativefire configure --platform react-native --project=my-project
+        ```
+
+  - type: textarea
+    id: implementation
+    attributes:
+      label: Implementation Ideas
+      description: If you have ideas about how to implement this, please share them
+      placeholder: |
+        - Add React Native detection to platform detection logic
+        - Create new platform type for React Native
+        - Handle metro.config.js modifications if needed
+        - Support both Expo and bare React Native projects
+
+  - type: checkboxes
+    id: contribution
+    attributes:
+      label: Contribution
+      options:
+        - label: I would be willing to contribute to implementing this feature
+        - label: I would be willing to help test this feature
+        - label: I would be willing to help write documentation for this feature
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Pre-submission Checklist  
+      options:
+        - label: I have searched existing issues to ensure this is not a duplicate
+          required: true
+        - label: I have checked the project roadmap and documentation
+          required: false
+        - label: This feature aligns with the project's goals and scope
+          required: false

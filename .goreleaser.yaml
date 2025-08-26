@@ -1,0 +1,46 @@
+version: 1
+
+project_name: nativefire
+release:
+  github:
+    owner: clix-so
+    name: nativefire
+builds:
+  - id: nativefire
+    main: main.go
+    binary: nativefire
+    goos:
+      - darwin
+      - linux
+    goarch:
+      - amd64
+      - arm64
+    ldflags:
+      - -s -w
+archives:
+  - id: default
+    format: tar.gz
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    files:
+      - LICENSE
+      - README.md
+
+brews:
+  - name: nativefire
+    repository:
+      owner: clix-so
+      name: nativefire
+    commit_author:
+      name: github-actions[bot]
+      email: github-actions[bot]@users.noreply.github.com
+    homepage: "https://github.com/clix-so/nativefire"
+    description: "🚀 Simplify Firebase setup in native development environments"
+    test: |
+      system "#{bin}/nativefire", "--version"
+    install: |
+      bin.install "nativefire"
+
+    dependencies: []
+    caveats: |
+      To get started, run:
+        nativefire --help
