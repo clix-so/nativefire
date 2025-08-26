@@ -29,7 +29,7 @@ brews:
   - name: nativefire
     repository:
       owner: clix-so
-      name: nativefire
+      name: homebrew-nativefire
     commit_author:
       name: github-actions[bot]
       email: github-actions[bot]@users.noreply.github.com
