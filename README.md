@@ -17,7 +17,10 @@ NativeFire is a CLI tool that automatically detects your native development envi
 
 ### Homebrew (macOS/Linux) - Recommended
 ```bash
-# Add our tap and install
+# Install directly (automatically adds tap)
+brew install clix-so/homebrew-nativefire/nativefire
+
+# Or add tap first, then install
 brew tap clix-so/homebrew-nativefire
 brew install nativefire
 ```
